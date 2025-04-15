@@ -22,13 +22,14 @@ The Boolean model in Information Retrieval (IR) is a fundamental model used for 
     <p>c) For each term in the query, it retrieves documents containing that term and performs Boolean operations (AND, OR, NOT) based on the query's structure.
 
 ### Program:
+```
+import numpy as np
+import pandas as pd
 
-    import numpy as np
-    import pandas as pd
-    class BooleanRetrieval:
-        def __init__(self):
-            self.index = {}
-            self.documents_matrix = None
+class BooleanRetrieval:
+    def __init__(self):
+        self.index = {}
+        self.documents_matrix = None
 
     def index_document(self, doc_id, text):
         terms = text.lower().split()
@@ -62,7 +63,47 @@ The Boolean model in Information Retrieval (IR) is a fundamental model used for 
         print(list(self.index.keys()))
 
     def boolean_search(self, query):
-        # TYPE YOUR CODE HERE
+        query_terms = query.lower().split()
+        results = set()  # Initialize as empty set to accumulate results
+        current_set = None  # Current set to handle 'or' logic
+
+        i = 0
+        while i < len(query_terms):
+            term = query_terms[i]
+
+            if term == 'or':
+                if current_set is not None:
+                    results.update(current_set)
+                current_set = None  # Reset current set for the next term
+            elif term == 'and':
+                i += 1
+                continue  # 'and' is implicit, move to next term
+            elif term == 'not':
+                i += 1
+                if i < len(query_terms):
+                    not_term = query_terms[i]
+                    if not_term in self.index:
+                        not_docs = self.index[not_term]
+                        if current_set is None:
+                            current_set = set(range(1, len(documents) + 1))  # All doc IDs
+                        current_set.difference_update(not_docs)
+            else:
+                if term in self.index:
+                    term_docs = self.index[term]
+                    if current_set is None:
+                        current_set = term_docs.copy()
+                    else:
+                        current_set.intersection_update(term_docs)
+                else:
+                    current_set = set()  # If the term doesn't exist, it results in an empty set
+
+            i += 1
+
+        # Update results with the last processed set
+        if current_set is not None:
+            results.update(current_set)
+
+        return sorted(results)
 
 if __name__ == "__main__":
     indexer = BooleanRetrieval()
@@ -87,7 +128,35 @@ if __name__ == "__main__":
     else:
         print("No results found for the query.")
 
+if __name__ == "__main__":
+    indexer = BooleanRetrieval()
 
+    documents = {
+        1: "Python is a programming language",
+        2: "Information retrieval deals with finding information",
+        3: "Boolean models are used in information retrieval"
+    }
+
+    for doc_id, text in documents.items():
+        indexer.index_document(doc_id, text)
+
+    indexer.create_documents_matrix(documents)
+    indexer.print_documents_matrix_table()
+    indexer.print_all_terms()
+
+    query = input("Enter your boolean query: ")
+    results = indexer.boolean_search(query)
+    if results:
+        print(f"Results for '{query}': {results}")
+    else:
+        print("No results found for the query.")
+```
 ### Output:
 
+![image](https://github.com/user-attachments/assets/335a400e-e8cc-406b-a89c-2d9d9c866102)
+
+![image](https://github.com/user-attachments/assets/d919990f-0da5-4a0a-a535-d504699ea7a8)
+
 ### Result:
+
+Thus, the implementation of Information Retrieval using Boolean model had been successfully executed using python
